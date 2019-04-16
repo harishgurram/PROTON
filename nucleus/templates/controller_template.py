@@ -101,7 +101,8 @@ class Ctrl_{{ controllerName }}(Model_{{ modelName }}):
                 # Method Definition Index
                 ###########################
 
-                # Insert: self.transaction['insert'](db_flavour, db_name, table_name, input_payload)
+                # Insert: self.transaction['insert'](db_flavour, db_name, schema_name, table_name, input_payload)
+                # Bulk Insert: self.transaction['bulk_insert'](db_flavour, db_name, schema_name, table_name, input_payload)
                 # Update: self.transaction['update'](db_flavour, sql, binding_params)
                 # Delete: self.transaction['update'](db_flavour, sql, binding_params)
 

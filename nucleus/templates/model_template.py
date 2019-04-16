@@ -27,6 +27,7 @@ __copyright__ = "Copyright (C) 2018 Pruthvi Kumar | http://www.apricity.co.in"
 __license__ = "BSD 3-Clause License"
 __version__ = "1.0"
 
+import io
 import json
 import pandas as pd
 from colorama import Fore
@@ -226,9 +227,56 @@ class Model_{{ modelName }}(ConnectionManager, MyUtilities):
                                           '{}]'.format(str(e)) + Style.RESET_ALL)
 
 
+        def perform_bulk_insert_operation(db_flavour, db_name, schema_name, table_name, input_payload):
+            """
+            Closure for Bulk / Heavy Insert Operation!
+            This is also a proxy for CREATE operation. If table does not exist, SQL Alchemy will create one.
+            The newly created table will have best matching data type for each column.
+
+            :param input_payload: A dictionary which is Pandas Ready.
+                eg. [{'column-1': value, 'column-2: value, column-3: value },
+                {'column-1': value, 'column-2: value, column-3: value }]
+            :param db_flavour: One of the supported versions. Must have an entry in dataBaseConfig.ini
+            :param db_name: Name of target Database
+            :param table_name: table_name into which the given payload is to be uploaded.
+            :return: A boolean indicating success/failure of Insert Operation.
+            """
+            # Do this with SQL Alchemy and Pandas.
+            consistency_of_keys = self.validate_list_of_dicts_consistency(input_payload)
+            if consistency_of_keys:
+                try:
+                    data_to_be_inserted = pd.DataFrame(input_payload)
+                    output_stream = io.StringIO()
+                    data_to_be_inserted.to_csv(output_stream, sep='\t', header=False, index=False)
+                    output_stream.seek(0)
+                    #contents = output_stream.getvalue() # use if you want to manipulate / play with the content only. Is expensive otherwise.
+                    connection = self.__alchemy_engine[db_flavour].raw_connection()
+                    cursor = connection.cursor()
+
+                    schema_status = self.pg_schema_generator(self.__alchemy_engine[db_flavour], schema_name)
+                    if schema_status:
+                        cursor.copy_from(output_stream, table_name, null="")
+                        connection.commit()
+                    cursor.close()
+                except Exception as e:
+                    self.logger.exception('[{{modelName}}]: {}'.format(str(e)))
+                    print(Fore.LIGHTRED_EX + '[{{modelName}}]: {}'.format(str(e)) + Style.RESET_ALL)
+                    if connection:
+                        connection.close()
+                finally:
+                    if connection:
+                        connection.close()
+            else:
+                self.logger.exception('[{{modelName}}]: To perform successful INSERT operation, ensure the input list of '
+                      'dictionaries is consistent in terms of `keys`.')
+                print(Fore.LIGHTRED_EX + '[{{modelName}}]: To perform successful INSERT operation, ensure the input list of '
+                      'dictionaries is consistent in terms of `keys`.' + Style.RESET_ALL)
+
+
 
         return {
             'insert': perform_insert_operation,
+            'bulk_insert': perform_bulk_insert_operation,
             'update': perform_update_or_delete_operation,
             'delete': perform_update_or_delete_operation
         }
