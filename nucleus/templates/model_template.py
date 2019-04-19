@@ -242,6 +242,7 @@ class Model_{{ modelName }}(ConnectionManager, MyUtilities):
             :return: A boolean indicating success/failure of Insert Operation.
             """
             # Do this with SQL Alchemy and Pandas.
+            # TODO: This payload ideally needs to be transferred from a datawarehouse like BQ to RDBMS like postgres or vice-versa. Need to code drivers for these.
             consistency_of_keys = self.validate_list_of_dicts_consistency(input_payload)
             if consistency_of_keys:
                 try:
