@@ -28,6 +28,7 @@ import os
 import argparse
 from colorama import Fore, Style
 from nucleus.execgen import ExecGen
+from nucleus.generics.jaeger_tracer import JaegerTracer
 from nucleus.metagen import MetaGen
 
 __author__ = "Pruthvi Kumar, pruthvikumar.123@gmail.com"
@@ -36,10 +37,11 @@ __license__ = "BSD 3-Clause License"
 __version__ = "1.0"
 
 
-class ProtonGen(MetaGen, ExecGen):
+class ProtonGen(MetaGen, ExecGen, JaegerTracer):
 
     def __init__(self):
         super(ProtonGen, self).__init__()
+        self.jaeger_tracer = self.init_tracer('ProtonGen')
         self.logger = self.get_logger(log_file_name='proton_gen_logs',
                                       log_file_path='{}/trace/proton_gen_logs.log'.format(self.ROOT_DIR))
         self.parser = argparse.ArgumentParser()
@@ -50,28 +52,32 @@ class ProtonGen(MetaGen, ExecGen):
                                                       'by re-generating main with existing iFace!')
         self.proton_args = self.parser.parse_args()
 
-        try:
-            self.bootstrap_sqlite()
-            if self.proton_args.mic_name is None:
+        with self.jaeger_tracer.start_span('protongen') as protongen_span:
+            try:
+                with self.jaeger_tracer.start_span('sqlite_bootstrap', child_of=protongen_span):
+                    self.bootstrap_sqlite()
+                if self.proton_args.mic_name is None:
 
-                if self.proton_args.forceStart is not None:
-                    self.generate_executor(port=3000)
-                    print(Fore.GREEN + 'PROTON initialized with existing iFace stack! Starting service '
-                                       '@ 3000' + Style.RESET_ALL)
-                    self.logger.info('PROTON initialized with existing iFace stack! Starting service @ 3000')
+                    if self.proton_args.forceStart is not None:
+                        with self.jaeger_tracer.start_span('exec_generator', child_of=protongen_span):
+                            self.generate_executor(port=3000)
+                            print(Fore.GREEN + 'PROTON initialized with existing iFace stack! Starting service '
+                                               '@ 3000' + Style.RESET_ALL)
+                            self.logger.info('PROTON initialized with existing iFace stack! Starting service @ 3000')
+                    else:
+                        print(Fore.GREEN + '[PROTON-GEN] - There is no name provided for Proton to initiate. Please '
+                                           'provide a valid mic_name using --mic_name argument' + Style.RESET_ALL)
+                        self.logger.info('[PROTON-GEN] - There is no name provided for Proton to initiate. Please '
+                                         'provide a valid mic_name using --mic_name argument')
                 else:
-                    print(Fore.GREEN + '[PROTON-GEN] - There is no name provided for Proton to initiate. Please '
-                                       'provide a valid mic_name using --mic_name argument' + Style.RESET_ALL)
-                    self.logger.info('[PROTON-GEN] - There is no name provided for Proton to initiate. Please '
-                                     'provide a valid mic_name using --mic_name argument')
-            else:
-                if self.proton_args.port is None:
-                    self.proton_args.port = 8000
-                self.__creator(self.proton_args.mic_name, self.proton_args.port)
+                    if self.proton_args.port is None:
+                        self.proton_args.port = 8000
+                    with self.jaeger_tracer.start_span('mic_creator', child_of=protongen_span):
+                        self.__creator(self.proton_args.mic_name, self.proton_args.port)
 
-        except Exception as e:
-            self.logger.exception('[ProtonGen] Error during protonGen initialization. Stacktrace to follow')
-            self.logger.exception(str(e))
+            except Exception as e:
+                self.logger.exception('[ProtonGen] Error during protonGen initialization. Stacktrace to follow')
+                self.logger.exception(str(e))
 
     def __creator(self, mic_name, port):
 
@@ -79,7 +85,6 @@ class ProtonGen(MetaGen, ExecGen):
 
             with open('{}/proton_vars/target_table_for_{}.txt'.format(self.ROOT_DIR,  mic_name)) as f:
                 target_table_for_mic = f.read().replace('\n', '')
-
             self.new_mic(mic_name=mic_name)
             self.generate_executor(port=port)
             print(Fore.GREEN + 'PROTON initialized for {}. Starting service @ {} & target table for this MIC '
