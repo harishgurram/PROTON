@@ -36,11 +36,6 @@ services:
     container_name: proton
     restart: always
     image: proton_stretch
-    environment:
-      - JAEGER_SERVICE_NAME=ProtonGen
-      - JAEGER_AGENT_HOST=jaeger
-      - JAEGER_AGENT_PORT=6831
-      - JAEGER_SAMPLER_MANAGER_HOST_PORT=jaeger:5778
     ports:
       - ${PROTON_TARGET_PORT}:${PROTON_TARGET_PORT}
     volumes:
