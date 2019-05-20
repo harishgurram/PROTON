@@ -39,6 +39,7 @@ SQLAlchemy
 SQLAlchemy-Utils
 urllib3
 wrapt
+jaeger-client
 #########################
 # END PROTON requirements
 #########################
