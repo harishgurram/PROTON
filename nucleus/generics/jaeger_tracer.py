@@ -36,7 +36,7 @@ class JaegerTracer(object):
     """
 
     def __init__(self):
-        super(Jaeger_Tracer, self).__init__()
+        super(JaegerTracer, self).__init__()
 
     def init_tracer(self, service):
         """
