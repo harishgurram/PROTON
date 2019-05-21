@@ -32,6 +32,7 @@ services:
       - "16686:16686"
       - "14268:14268"
       - "9411:9411"
+
   proton:
     container_name: proton
     restart: always
@@ -45,4 +46,7 @@ services:
       - pg
       - redis
       - jaeger
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
     entrypoint: ["./proton.sh"]
