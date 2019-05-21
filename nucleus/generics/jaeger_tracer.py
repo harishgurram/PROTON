@@ -54,10 +54,8 @@ class JaegerTracer(object):
                     'type': 'const',
                     'param': 1,
                 },
-                'reporter': {
-                    'agentHost': 'jaeger',
-                    'agentPort': 6832
-                },
+                'agentHost': 'jaeger',
+                'agentPort': 6832,
                 'logging': True,
             },
             service_name=service,
