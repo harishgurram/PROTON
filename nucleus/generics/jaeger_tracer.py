@@ -55,7 +55,7 @@ class JaegerTracer(object):
                     'param': 1,
                 },
                 'agentHost': 'jaeger',
-                'agentPort': 6832,
+                'agentPort': 6831,
                 'logging': True,
             },
             service_name=service,
