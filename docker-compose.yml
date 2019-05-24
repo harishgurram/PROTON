@@ -20,6 +20,24 @@ services:
       - ${PROTON_REDIS_VOLUME_MOUNT}:/data
     ports:
       - ${REDIS_TARGET_PORT}:${REDIS_TARGET_PORT}
+
+  proton:
+    container_name: proton
+    restart: always
+    image: proton_stretch
+    ports:
+      - ${PROTON_TARGET_PORT}:${PROTON_TARGET_PORT}
+    volumes:
+      - .:/home/PROTON
+      - ${PROTON_SQLITE_VOLUME_MOUNT}:/home/PROTON/proton-db
+    depends_on:
+      - pg
+      - redis
+    environment:
+      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_PORT=6831
+    entrypoint: ["./proton.sh"]
+
   jaeger:
     container_name: proton_jaeger_tracing
     restart: always
@@ -34,21 +52,5 @@ services:
       - "16686:16686"
       - "14268:14268"
       - "9411:9411"
-
-  proton:
-    container_name: proton
-    restart: always
-    image: proton_stretch
-    ports:
-      - ${PROTON_TARGET_PORT}:${PROTON_TARGET_PORT}
-    volumes:
-      - .:/home/PROTON
-      - ${PROTON_SQLITE_VOLUME_MOUNT}:/home/PROTON/proton-db
     depends_on:
-      - pg
-      - redis
-      - jaeger
-    environment:
-      - JAEGER_AGENT_HOST=jaeger
-      - JAEGER_AGENT_PORT=6831
-    entrypoint: ["./proton.sh"]
+      - proton
