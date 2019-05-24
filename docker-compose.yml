@@ -34,16 +34,16 @@ services:
       - pg
       - redis
     environment:
-      - JAEGER_AGENT_HOST=jaeger
+      - JAEGER_AGENT_HOST=proton_jaeger
       - JAEGER_AGENT_PORT=6831
     entrypoint: ["./proton.sh"]
 
-  jaeger:
-    container_name: proton_jaeger_tracing
+  proton_jaeger:
+    container_name: proton_jaeger
     restart: always
     image: jaegertracing/all-in-one:latest
     environment:
-      - HOSTNAME=jaeger
+      - HOSTNAME=proton_jaeger
     ports:
       - "5775:5775/udp"
       - "6831:6831/udp"

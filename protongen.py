@@ -52,6 +52,10 @@ class ProtonGen(MetaGen, ExecGen, JaegerTracer):
                                                       'by re-generating main with existing iFace!')
         self.proton_args = self.parser.parse_args()
 
+        print('JAEGER CONFIG for PROTON - agent name is: {}'.format(os.getenv('JAEGER_AGENT_HOST')))
+        print('JAEGER CONFIG for PROTON - port is: {}'.format(int(os.getenv('JAEGER_AGENT_PORT'))))
+        
+
         with self.jaeger_tracer.start_span('protongen') as protongen_span:
             try:
                 with self.jaeger_tracer.start_span('sqlite_bootstrap', child_of=protongen_span):

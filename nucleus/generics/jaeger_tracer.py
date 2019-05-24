@@ -44,7 +44,6 @@ class JaegerTracer(object):
         :param service: [String] Service Name
         :return: Jaeger tracer object
         """
-
         logging.getLogger('').handlers = []
         logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
@@ -54,8 +53,6 @@ class JaegerTracer(object):
                     'type': 'const',
                     'param': 1,
                 },
-                'agentHost': 'jaeger',
-                'agentPort': 6831,
                 'logging': True,
             },
             service_name=service,
